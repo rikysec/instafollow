@@ -1,48 +1,269 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <!-- Basic Page Needs
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <meta charset="utf-8" />
-    <title>Chat!</title>
-    <meta name="description" content="" />
-    <meta name="author" content="" />
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifica Follower Instagram</title>
+    <!-- Caricamento di Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Usiamo un font pulito come Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Stile per lo spinner di caricamento */
+        .spinner {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
 
-    <!-- Mobile Specific Metas
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <!-- FONT
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-
-    <!-- CSS
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link rel="stylesheet" href="css/normalize.css" />
-    <link rel="stylesheet" href="css/skeleton.css" />
-    <link rel="stylesheet" href="styles.css" />
-
-    <!-- Favicon
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link rel="icon" type="image/ico" href="favicon.ico" />
-    <script src="/dist/index.js" type="module"></script>
-  </head>
-  <body>
-    <!-- Primary Page Layout
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <div class="container" style="width: 95%; height: 100%">
-      <div class="row" style="height: 100%">
-        <div class="one-third column" style="margin-top: 25%">
-          <h4><b>Chat</b>, powered by Durable Objects</h4>
-          <p>
-            This chat room is hosted in a single Durable Object, running in one
-            process in one machine in one location, very close to the users.
-          </p>
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-lg">
+        
+        <!-- Intestazione -->
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-gray-800">Verifica Follower Instagram</h1>
+            <p class="text-gray-600 mt-2 mb-6">Scopri chi segui che non ti segue.</p>
         </div>
-        <div class="two-thirds column" id="root"></div>
-      </div>
+
+        <!-- Controlli per il caricamento -->
+        <div class="space-y-6">
+            <!-- Input per "following.html" -->
+            <div>
+                <label for="followingFile" class="block text-sm font-medium text-gray-700 mb-1">1. Carica <code>following.html</code></label>
+                <input type="file" id="followingFile" accept=".html" class="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-lg file:border-0 file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100 cursor-pointer"/>
+                <p id="followingStatus" class="text-xs text-gray-500 mt-1 h-4"></p> <!-- h-4 per evitare layout shift -->
+            </div>
+
+            <!-- Input per "followers_1.html" -->
+            <div>
+                <label for="followersFile" class="block text-sm font-medium text-gray-700 mb-1">2. Carica <code>followers_1.html</code></label>
+                <input type="file" id="followersFile" accept=".html" class="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-lg file:border-0 file:text-sm file:font-semibold
+                    file:bg-green-50 file:text-green-700
+                    hover:file:bg-green-100 cursor-pointer"/>
+                <p id="followersStatus" class="text-xs text-gray-500 mt-1 h-4"></p>
+            </div>
+
+            <!-- Pulsante di Confronto -->
+            <div>
+                <button id="compareButton" disabled
+                        class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold shadow-md
+                               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50
+                               disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-150">
+                    3. Confronta Liste
+                </button>
+            </div>
+        </div>
+
+        <!-- Area Risultati -->
+        <div id="resultsArea" class="mt-8">
+            <!-- Spinner di Caricamento -->
+            <div id="loading" class="hidden flex items-center justify-center space-x-2 text-gray-600">
+                <div class="spinner w-5 h-5 border-2 border-transparent border-t-indigo-600 rounded-full animate-spin"></div>
+                <span>Analizzando i file...</span>
+            </div>
+
+            <!-- Messaggio di Errore -->
+            <div id="error" class_a="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-md" role="alert">
+                <!-- Il messaggio di errore verrà inserito qui -->
+            </div>
+            
+            <!-- Messaggio di Info (es. 0 risultati) -->
+            <div id="info" class="hidden bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-3 rounded-md" role="alert">
+                <!-- Il messaggio informativo verrà inserito qui -->
+            </div>
+
+            <!-- Lista Risultati -->
+            <div id="resultsContainer" class="hidden">
+                <h2 id="resultsHeader" class="text-lg font-semibold text-gray-800 mb-3">Non ti seguono (0)</h2>
+                <div class="border rounded-lg max-h-64 overflow-y-auto bg-gray-50">
+                    <ul id="resultsList" class="divide-y divide-gray-200 p-4">
+                        <!-- I risultati verranno inseriti qui -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- End Document
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-  </body>
+    <script>
+        // Variabili per memorizzare le liste
+        let followingList = [];
+        let followersList = [];
+
+        // Riferimenti agli elementi del DOM
+        const followingFileInput = document.getElementById('followingFile');
+        const followersFileInput = document.getElementById('followersFile');
+        const followingStatus = document.getElementById('followingStatus');
+        const followersStatus = document.getElementById('followersStatus');
+        const compareButton = document.getElementById('compareButton');
+        
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const info = document.getElementById('info');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsHeader = document.getElementById('resultsHeader');
+        const resultsList = document.getElementById('resultsList');
+
+        // Aggiungi listener per i file input
+        followingFileInput.addEventListener('change', (e) => handleFile(e, 'following'));
+        followersFileInput.addEventListener('change', (e) => handleFile(e, 'followers'));
+        compareButton.addEventListener('click', compareLists);
+
+        /**
+         * Gestisce la lettura e il parsing di un file HTML caricato.
+         */
+        function handleFile(event, fileType) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Resetta la UI
+            resetUIState();
+            loading.classList.remove('hidden');
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const htmlString = e.target.result;
+                    const usernames = parseUsernames(htmlString, fileType);
+                    
+                    if (fileType === 'following') {
+                        followingList = usernames;
+                        followingStatus.textContent = `Caricati: ${usernames.length} following`;
+                    } else {
+                        followersList = usernames;
+                        followersStatus.textContent = `Caricati: ${usernames.length} followers`;
+                    }
+
+                    // Abilita il pulsante solo se entrambi i file sono caricati
+                    checkIfReady();
+                } catch (err) {
+                    showError(`Errore durante il parsing: ${err.message}`);
+                }
+                loading.classList.add('hidden');
+            };
+
+            reader.onerror = function() {
+                showError('Impossibile leggere il file.');
+                loading.classList.add('hidden');
+            };
+
+            reader.readAsText(file);
+        }
+
+        /**
+         * Estrae gli username dall'HTML usando Regular Expressions.
+         */
+        function parseUsernames(html, fileType) {
+            // I pattern sono gli stessi dell'app Swift
+            const followingPattern = /href="https:\/\/www\.instagram\.com\/_u\/([a-zA-Z0-9._-]+)"/g;
+            const followersPattern = /href="https:\/\/www\.instagram\.com\/([a-zA-Z0-9._-]+)"/g;
+            
+            const regex = (fileType === 'following') ? followingPattern : followersPattern;
+            
+            const usernames = new Set();
+            let match;
+            
+            // Esegui il loop finché ci sono corrispondenze
+            while ((match = regex.exec(html)) !== null) {
+                // 'match[1]' è il gruppo catturato (il nickname)
+                usernames.add(match[1]);
+            }
+            
+            return Array.from(usernames);
+        }
+
+        /**
+         * Controlla se entrambi i file sono stati caricati e abilita il pulsante.
+         */
+        function checkIfReady() {
+            if (followingList.length > 0 && followersList.length > 0) {
+                compareButton.disabled = false;
+            }
+        }
+
+        /**
+         * Confronta le due liste e mostra i risultati.
+         */
+        function compareLists() {
+            resetUIState();
+            loading.classList.remove('hidden');
+
+            // Usa i Set per un confronto efficiente
+            const followingSet = new Set(followingList);
+            const followersSet = new Set(followersList);
+
+            // Trova gli utenti in 'followingSet' che non sono in 'followersSet'
+            const difference = [...followingSet].filter(user => !followersSet.has(user));
+            
+            // Ordina alfabeticamente
+            const notFollowingBack = difference.sort();
+            
+            loading.classList.add('hidden');
+            displayResults(notFollowingBack);
+        }
+
+        /**
+         * Mostra i risultati nella pagina.
+         */
+        function displayResults(notFollowingBack) {
+            // Pulisci la lista precedente
+            resultsList.innerHTML = '';
+            
+            if (notFollowingBack.length === 0) {
+                // Nessun risultato, mostra messaggio informativo
+                info.textContent = 'Ottimo! Tutti quelli che segui ti seguono.';
+                info.classList.remove('hidden');
+            } else {
+                // Popola la lista con i risultati
+                resultsHeader.textContent = `Non ti seguono (${notFollowingBack.length})`;
+                
+                notFollowingBack.forEach(username => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    
+                    a.href = `https://www.instagram.com/${username}`;
+                    a.textContent = username;
+                    a.target = '_blank'; // Apre in una nuova scheda
+                    a.rel = 'noopener noreferrer';
+                    a.className = 'text-indigo-600 hover:text-indigo-800 hover:underline';
+                    
+                    li.appendChild(a);
+                    resultsList.appendChild(li);
+                });
+
+                resultsContainer.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Funzioni di utilità per la UI
+         */
+        function showError(message) {
+            error.textContent = message;
+            error.classList.remove('hidden');
+        }
+        
+        function resetUIState() {
+            error.classList.add('hidden');
+            info.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+            loading.classList.add('hidden');
+        }
+
+    </script>
+
+</body>
 </html>
