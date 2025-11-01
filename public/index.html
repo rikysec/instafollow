@@ -1,3 +1,15 @@
+// Questo è il codice corretto da incollare nell'editor di Cloudflare Workers
+
+addEventListener('fetch', event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+/**
+ * Gestisce la richiesta e restituisce la pagina HTML
+ */
+async function handleRequest(request) {
+  // Il nostro intero file HTML è memorizzato in una stringa JavaScript
+  const html = `
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -133,10 +145,10 @@
 
                 // Controlla se i file esistono
                 if (!followingFile) {
-                    throw new Error(`File non trovato: ...${pathSuffixFollowing}. Assicurati di aver caricato il file zip corretto.`);
+                    throw new Error(\`File non trovato: ...\${pathSuffixFollowing}. Assicurati di aver caricato il file zip corretto.\`);
                 }
                 if (!followersFile) {
-                    throw new Error(`File non trovato: ...${pathSuffixFollowers}. Assicurati di aver caricato il file zip corretto.`);
+                    throw new Error(\`File non trovato: ...\${pathSuffixFollowers}. Assicurati di aver caricato il file zip corretto.\`);
                 }
 
                 loadingText.textContent = 'File trovati. Estrazione del testo...';
@@ -177,7 +189,7 @@
          */
         function parseUsernames(html, fileType) {
             // I pattern sono gli stessi dell'app Swift
-            const followingPattern = /href="https://www\.instagram\.com\/_u\/([a-zA-Z0-9._-]+)"/g;
+            const followingPattern = /href="https:\/\/www\.instagram\.com\/_u\/([a-zA-Z0-9._-]+)"/g;
             const followersPattern = /href="https://www\.instagram\.com\/([a-zA-Z0-9._-]+)"/g;
             
             const regex = (fileType === 'following') ? followingPattern : followersPattern;
@@ -207,13 +219,13 @@
                 info.classList.remove('hidden');
             } else {
                 // Popola la lista con i risultati
-                resultsHeader.textContent = `Non ti seguono (${notFollowingBack.length})`;
+                resultsHeader.textContent = \`Non ti seguono (\${notFollowingBack.length})\`;
                 
                 notFollowingBack.forEach(username => {
                     const li = document.createElement('li');
                     const a = document.createElement('a');
                     
-                    a.href = `https://www.instagram.com/${username}`;
+                    a.href = \`https://www.instagram.com/\${username}\`;
                     a.textContent = username;
                     a.target = '_blank'; // Apre in una nuova scheda
                     a.rel = 'noopener noreferrer';
@@ -247,4 +259,11 @@
 
 </body>
 </html>
+  `;
+
+  // Restituisci l'HTML come risposta
+  return new Response(html, {
+    headers: { 'content-type': 'text/html;charset=UTF-8' },
+  })
+}
 
